@@ -2,6 +2,10 @@ library(shiny)
 library(shinydashboard)
 library(dplyr)
 library(leaflet)
+library(ggplot2)
+library(data.table)
+library(rgdal)
+library(rgeos)
 
 categories <- read.csv("categories.csv", stringsAsFactors = FALSE)
 types <- pull(categories, type)
@@ -11,6 +15,63 @@ places <- read.csv("data/places.csv")
 
 load("grid100m_category_distances.RData")
 load("warsaw_100m.RData")
+
+districs <-
+    rgdal::readOGR("warszawa-dzielnice.geojson", encoding = 'UTF-8', use_iconv = TRUE)
+
+districs@polygons[[1]] <- NULL
+districs@data <- districs@data[-1, ]
+
+whole_places_table_raw <- fread('places.csv', encoding = 'UTF-8') 
+
+results_in_whole <-
+    whole_places_table_raw[, .(mean_in_warsaw = round(mean(rating, na.rm = TRUE), 2),
+                               warsaw__quant_25 = round(quantile(rating, .25, na.rm = TRUE), 2),
+                               warsaw__quant_75 = round(quantile(rating, .75, na.rm = TRUE), 2)), by = type]
+
+whole_places_table <- copy(whole_places_table_raw)
+
+sp::coordinates(whole_places_table) <- ~lng+lat
+sp::proj4string(whole_places_table) <- sp::proj4string(districs)
+
+# tst <- rgeos::gWithin(whole_places_table, districs, byid = TRUE)
+all_places_by_district <- sp::over(whole_places_table, districs, byid = TRUE)
+
+whole_places_table <- cbind(whole_places_table_raw, all_places_by_district)
+
+districts_statistics <-
+    whole_places_table[, .(
+        mean_in_district = round(mean(rating, na.rm = TRUE), 2),
+        district_quant_25 = round(quantile(rating, .25, na.rm = TRUE), 2),
+        district_quant_75 = round(quantile(rating, .75, na.rm = TRUE), 2)
+    ), by = .(type, cartodb_id)]
+
+
+get_stats_for_point <- function(point_coords) {
+    sp::coordinates(point_coords) <- ~lng+lat
+    sp::proj4string(point_coords) <- sp::proj4string(districs)
+    
+    sp::over(point_coords, districs, byid = TRUE)
+}
+
+
+#' @param places_table of filtered data of places to seach for.
+#' 
+get_categorical_summary_statistics <- function(places_table, point_coords) {
+    places_table <- data.table(places_table)
+    results_in_radius <-
+        places_table[, .(mean_in_radius = round(mean(rating, na.rm = TRUE), 2),
+                         radius_quant_25 = round(quantile(rating, .25, na.rm = TRUE), 2),
+                         radius_quant_75 = round(quantile(rating, .75, na.rm = TRUE), 2)), by = type]
+    
+    curr_district_stats <- districts_statistics[cartodb_id == get_stats_for_point(point_coords)$cartodb_id]
+    return(
+        merge(results_in_whole, results_in_radius, by = 'type') %>% 
+            merge(curr_district_stats, by = 'type')
+    )
+}
+
+
 
 add_km_coordinates = function(df, lat_mean = 52.22922, lng_mean = 21.04778){
     m_x = 111132.954 - 559.822 * cos(2 * lat_mean * pi / 180) + 1.175 * cos(4 * lat_mean * pi / 180)
@@ -177,6 +238,7 @@ ui <- dashboardPage(
             ),
             column(
                 dataTableOutput("ratings"),
+                plotOutput("scores"),
                 width = 4
             )
         )
@@ -199,7 +261,13 @@ server <- function(input, output) {
     })
     
     output$ratings <- renderDataTable({
-        count(fp(),type)
+        #count(fp(),type)
+        # point_coords <- data.table(lng = mean(whole_places_table$lng), lat = mean(whole_places_table$lat))
+        point <- input$map_click
+        if (!is.null(point)) {
+            point_coords <- data.table(lng = point$lng, lat = point$lat)
+            get_categorical_summary_statistics(fp(), point_coords = point_coords)   
+        }
     })
 
      observe({
@@ -264,7 +332,13 @@ server <- function(input, output) {
          crit <- criteria()
          if (nrow(crit) > 0) {
              score <- calc_score_hyperbolic(grid100m_category_distances, warsaw_100m, crit, important_points)   
-             glimpse(score)
+             output$scores <- renderPlot({
+                 g <- ggplot(score) +
+                    geom_point(aes(lat, lng, colour = score_norm)) +
+                     theme_void()
+                 
+                 return(g)
+             })
          }
      })
      
