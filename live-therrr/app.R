@@ -17,7 +17,16 @@ ui <- dashboardPage(
     ),
     dashboardSidebar(
         sliderInput("radius", "Point radius", min = 1000, max = 10000, value = 100, step = 50),
-        checkboxGroupInput("categories", "Categories", choices = types),
+        fluidRow(
+            column(
+                checkboxGroupInput("desired_categories", "Desired amenities", choices = types),
+                width = 6
+            ),
+            column(
+                checkboxGroupInput("undesired_categories", "Undesired amenities", choices = types),
+                width = 6
+            )
+        ),
         width = 350
     ),
     dashboardBody(
@@ -28,11 +37,11 @@ ui <- dashboardPage(
         fluidRow(
             column(
                 leafletOutput("map"),
-                width = 6
+                width = 8
             ),
             column(
                 dataTableOutput("ratings"),
-                width = 6
+                width = 4
             )
         )
     )
@@ -69,7 +78,7 @@ server <- function(input, output) {
          point <- input$map_click
          req(!is.null(point))
          
-         fp <- places %>% filter(type %in% input$categories) %>% 
+         fp <- places %>% filter(type %in% input$desired_categories) %>% 
              dplyr::select(name,rating,lat,lng,type)
          
          req(nrow(fp>0))
