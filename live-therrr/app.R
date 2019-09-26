@@ -9,7 +9,10 @@ ui <- dashboardPage(
         title = "Live theRRR!",
         titleWidth = 350
     ),
-    dashboardSidebar(width = 350),
+    dashboardSidebar(
+        sliderInput("radius", "Point radius", min = 100, max = 1000, value = 100, step = 50),
+        width = 350
+    ),
     dashboardBody(
         tags$head(
             tags$link(rel = "stylesheet", type = "text/css",
