@@ -20,10 +20,18 @@ server <- function(input, output) {
     
     output$map <- renderLeaflet({
         leaflet() %>%
-            leaflet::addScaleBar('bottomleft') %>%
+            addScaleBar('bottomleft') %>%
             setView(21.0122, 52.2297, 11) %>%
-            addProviderTiles(provider = providers$OpenStreetMap)
+            addProviderTiles(provider = providers$OpenStreetMap,group="OpenStreetMap") %>%
+            addProviderTiles(provider = providers$CartoDB,group="CartoDB") %>%
+            addProviderTiles(provider = providers$Esri.WorldTopoMap,group="Esri.WorldTopoMap")  %>%
+            addLayersControl(
+                baseGroups = c("OpenStreetMap", "CartoDB","Esri.WorldTopoMap"),
+                options = layersControlOptions(collapsed = T,position="topleft")
+         )
     })
 }
 
 shinyApp(ui, server)
+
+
