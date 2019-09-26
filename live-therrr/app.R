@@ -20,7 +20,7 @@ server <- function(input, output) {
     
     output$map <- renderLeaflet({
         leaflet() %>%
-            addScaleBar('bottomleft') %>%
+            
             setView(21.0122, 52.2297, 11) %>%
             addProviderTiles(provider = providers$OpenStreetMap,group="OpenStreetMap") %>%
             addProviderTiles(provider = providers$CartoDB,group="CartoDB") %>%
@@ -30,6 +30,15 @@ server <- function(input, output) {
                 options = layersControlOptions(collapsed = T,position="topleft")
          )
     })
+    
+     observe({
+         point <- input$map_click
+         req(!is.null(point))
+         leafletProxy("map") %>%
+            addScaleBar('bottomleft') %>%
+            clearShapes() %>%
+            addCircles(lng=point$lng,lat=point$lat,radius=1000) #, weight = 1, color = "#777777", fillOpacity = 0.7
+     })
 }
 
 shinyApp(ui, server)
