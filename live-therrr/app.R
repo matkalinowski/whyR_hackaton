@@ -54,7 +54,7 @@ server <- function(input, output) {
     })
     
     output$ratings <- renderDataTable({
-        categories
+        count(fp(),type)
     })
 
      observe({
@@ -65,22 +65,31 @@ server <- function(input, output) {
             addCircles(lng=point$lng,lat=point$lat,radius=input$radius) #, weight = 1, color = "#777777", fillOpacity = 0.7
      })
      
-     observe({
+     fp <- reactive({
          point <- input$map_click
          req(!is.null(point))
          
-         testPoints <- data.frame(lng=c(21.014,21.1122,21.2122),lat=c(52.2297,52.2297,52.2297))
-         filterdPoints <-  data.frame(testPoints,distTF=geosphere::distHaversine(testPoints,c(point$lng, point$lat))<input$radius) %>%
-             mutate(col=ifelse(distTF,"red","blue"))
+         fp <- places %>% filter(type %in% input$categories) %>% 
+             dplyr::select(name,rating,lat,lng,type)
          
-         leafletProxy("map") %>%
-             clearMarkers() %>%
-             addAwesomeMarkers(data=filterdPoints,icon=makeAwesomeIcon(icon='circle', library='fa', markerColor=~col))
+         req(nrow(fp>0))
+         fp <- fp %>% mutate(dist=geosphere::distHaversine(fp[,c("lng","lat")],c(point$lng, point$lat)),
+                             distTF=dist<input$radius) %>% 
+             filter(distTF)
+         
+         fp
      })
      
      observe({
-         print(places %>% head)
+         leafletProxy("map") %>%
+             clearMarkers() %>%
+             addAwesomeMarkers(data=fp(),label=~name, icon=makeAwesomeIcon(icon='circle', library='fa', markerColor=~col)) %>%
+             fitBounds(lng1 = min(fp()$lng), 
+                       lat1 = min(fp()$lat), 
+                       lng2 = max(fp()$lng), 
+                       lat2 = max(fp()$lat))
      })
+     
 }
 
 shinyApp(ui, server)
