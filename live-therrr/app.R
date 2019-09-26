@@ -23,7 +23,16 @@ ui <- dashboardPage(
             tags$link(rel = "stylesheet", type = "text/css",
                       href = paste0("main.css?", as.numeric(Sys.time())))
         ),
-        leafletOutput("map")
+        fluidRow(
+            column(
+                leafletOutput("map"),
+                width = 6
+            ),
+            column(
+                dataTableOutput("ratings"),
+                width = 6
+            )
+        )
     )
 )
 
@@ -42,6 +51,10 @@ server <- function(input, output) {
          )
     })
     
+    output$ratings <- renderDataTable({
+        categories
+    })
+
      observe({
          point <- input$map_click
          req(!is.null(point))
