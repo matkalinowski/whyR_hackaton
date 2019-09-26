@@ -144,6 +144,7 @@ calc_score_hyperbolic = function(grid100m_category_distances, warsaw_100m, crite
     }
 }
 
+typesCol <- data.frame(name=names(types) %>% tolower(),col=rainbow(length(types)))
 
 ui <- dashboardPage(
     dashboardHeader(
@@ -268,13 +269,24 @@ server <- function(input, output) {
      })
      
      observe({
+         df <- fp()
+         df$type <- df$type %>% tolower()
+
+         df <- df %>% inner_join(typesCol,by=c("type"="name"))
+         
+         print(df %>% head)
+         req(nrow(df)>1)
          leafletProxy("map") %>%
              clearMarkers() %>%
-             addAwesomeMarkers(data=fp(),label=~name, icon=makeAwesomeIcon(icon='circle', library='fa', markerColor=~col)) %>%
+             clearControls() %>%
+             addCircleMarkers(data=df, label=~name, radius=4, col=~col) %>%
              fitBounds(lng1 = min(fp()$lng), 
                        lat1 = min(fp()$lat), 
                        lng2 = max(fp()$lng), 
-                       lat2 = max(fp()$lat))
+                       lat2 = max(fp()$lat))  %>%
+           leaflet::addLegend(colors=df$col %>% unique,labels=df$type %>% unique,position = "bottomright")
+         
+         
      })
      
 }
