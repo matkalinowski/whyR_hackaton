@@ -1,6 +1,8 @@
 library(tidyverse)
 library(RANN)
 
+mean_lat = 52.22922
+
 add_km_coordinates = function(df, lat_mean = mean(df$lat)){
   m_x = 111132.954 - 559.822 * cos(2 * lat_mean * pi / 180) + 1.175 * cos(4 * lat_mean * pi / 180)
   m_y = 111132.954 * cos(lat_mean * pi / 180)
@@ -21,13 +23,31 @@ add_km_coordinates = function(df, lat_mean = mean(df$lat)){
 places = read_csv('data/places.csv')
 warsaw_100m = read_tsv("data/warsaw_wgs84_every_100m.txt", col_names = c("lng", "lat", "district"))
 
-category_mappings = places %>%
-  group_by(type) %>%
-  tally() %>%
-  arrange(n) %>%
-  filter(n > 1000) %>%
-  mutate(category = type) %>%
-  select(-n)
+warsaw_100m = warsaw_100m %>%
+  mutate(
+    district = case_when(
+      district == "REMBERT├ôW" ~ "Rembertów",
+      district == "OCHOTA" ~ "Ochota",
+      district == "┼╗oliborz" ~ "Żoliborz",
+      district == "WAWER" ~ "Wawer",
+      district == "┼ÜR├ôDMIE┼ÜCIE" ~ "Śródmieście",
+      district == "WOLA" ~ "Wola",
+      district == "URSUS" ~ "Ursus",
+      TRUE ~ district 
+    )
+  )
+
+category_mappings = read_csv("app_data/categories.csv")
+category_mappings = category_mappings %>%
+  mutate(category = type)
+
+# category_mappings = places %>%
+#   group_by(type) %>%
+#   tally() %>%
+#   arrange(n) %>%
+#   filter(n > 1000) %>%
+#   mutate(category = type) %>%
+#   select(-n)
 
 places_with_categories = places %>%
   inner_join(category_mappings, by = 'type')
@@ -38,11 +58,12 @@ categories = unique(places_with_categories$category)
 
 
 
-places_with_categories = add_km_coordinates(places_with_categories, lat_mean = mean(warsaw_100m$lat))
-warsaw_100m = add_km_coordinates(warsaw_100m, lat_mean = mean(warsaw_100m$lat))
+places_with_categories = add_km_coordinates(places_with_categories, lat_mean = mean_lat)
+warsaw_100m = add_km_coordinates(warsaw_100m, lat_mean = mean_lat)
 
 
-
+# save(places_with_categories, file = "app_data/places_with_categories.RData", compress = TRUE)
+# save(warsaw_100m, file = "app_data/warsaw_100m.RData", compress = TRUE)
 
 
 grid100m_category_distances = tibble()
