@@ -1,8 +1,12 @@
 library(shiny)
 library(shinydashboard)
 library(dplyr)
-library(tidyr)
 library(leaflet)
+
+categories <- read.csv("categories.csv", stringsAsFactors = FALSE)
+types <- pull(categories, type)
+names(types) <- pull(categories, label)
+types <- sort(types)
 
 ui <- dashboardPage(
     dashboardHeader(
@@ -11,6 +15,7 @@ ui <- dashboardPage(
     ),
     dashboardSidebar(
         sliderInput("radius", "Point radius", min = 100, max = 1000, value = 100, step = 50),
+        checkboxGroupInput("categories", "Categories", choices = types),
         width = 350
     ),
     dashboardBody(
