@@ -1,0 +1,1 @@
+This is a repository containing sollution of whyR hackaton. More info: https://github.com/WhyR2019/hackathon.
