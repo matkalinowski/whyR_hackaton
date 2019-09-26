@@ -44,7 +44,7 @@ calc_criteria_score_hyperbolic = function(grid100m_category_distances, criteria,
         inner_join(criteria, by = 'category') %>%
         mutate(criteria_score = scaling_constant / (scaling_constant + distance) * weight) %>%
         group_by(lng, lat, district, x, y) %>%
-        summarise(criteria_score = -sum(criteria_score)) %>%
+        summarise(criteria_score = sum(criteria_score)) %>%
         ungroup()  %>%
         mutate(criteria_score_norm = (criteria_score - min(criteria_score) + 0.000001) / (max(criteria_score) - min(criteria_score) + 0.000001))
 }
@@ -68,7 +68,7 @@ calc_points_score_linear = function(warsaw_100m, important_points){
             points_score = -distance
         ) %>%
         group_by(lng, lat, district, x, y) %>%
-        summarise(points_score = -sum(points_score)) %>%
+        summarise(points_score = sum(points_score)) %>%
         ungroup()  %>%
         mutate(points_score_norm = (points_score - min(points_score) + 0.000001) / (max(points_score) - min(points_score) + 0.000001))
 }
@@ -121,7 +121,9 @@ calc_score_linear = function(grid100m_category_distances, warsaw_100m, criteria,
     }
 }
 
-calc_score_hyperbolic <- function(grid100m_category_distances, warsaw_100m, criteria, important_points, scaling_constant = 10000){
+
+
+calc_score_hyperbolic = function(grid100m_category_distances, warsaw_100m, criteria, important_points, scaling_constant = 10000){
     criteria_score = calc_criteria_score_hyperbolic(grid100m_category_distances, criteria, scaling_constant = scaling_constant)
     
     if(nrow(important_points) >= 1){
