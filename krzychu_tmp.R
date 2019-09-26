@@ -25,11 +25,6 @@ criteria = tibble(
   weight = c(1, 0, -1)
 )
 
-criteria = tibble(
-  category = c("bakery", "gym", "school"),
-  weight = c(1, 0, -1)
-)
-
 criteria_score = calc_criteria_score_linear(grid100m_category_distances, criteria)
 criteria_score = calc_criteria_score_hyperbolic(grid100m_category_distances, criteria)
 
@@ -74,7 +69,14 @@ ggplot(points_score) +
 
 
 criteria = profiles %>%
-  filter(profile == 'young_parent')
+  filter(profile == 'student')
+
+
+
+criteria = tibble(
+  category = c("bakery", "gym", "school"),
+  weight = c(1, 0, -1)
+)
 
 important_points = tibble(
   lng = c(21.11),
