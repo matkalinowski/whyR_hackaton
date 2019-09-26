@@ -5,3 +5,8 @@
 #map {
   height: calc(100vh - 50px) !important;
 }
+
+#ratings {
+  max-height: calc(100vh - 50px) !important;
+  padding: 10px;
+}

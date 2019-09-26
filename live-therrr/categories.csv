@@ -1,0 +1,19 @@
+category,type,label
+Health_care,dentist,Dentist
+Health_care,doctor,Doctor
+Health_care,hospital,Hospital
+Health_care,pharmacy,Pharmacy
+Health_care,veterinary_care,Vetenirary care
+Welness,beauty_salon,Beauty salon
+Welness,gym,Gym
+Leisure,park,Park
+Leisure,cafe,Cafe
+Shops,bakery,Bakery
+Shops,supermarket,Supermarker
+Shops,store,Store
+Shops,furniture_store,Furniture store
+Going_out,bar,Bar
+Going_out,night_club,Night club
+Offices,city_hall,City hall
+Offices,post_office,Post office
+Schools,school,School
