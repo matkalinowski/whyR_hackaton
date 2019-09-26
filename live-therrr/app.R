@@ -6,6 +6,7 @@ library(ggplot2)
 library(data.table)
 library(rgdal)
 library(rgeos)
+library(tidyr)
 
 categories <- read.csv("categories.csv", stringsAsFactors = FALSE)
 types <- pull(categories, type)
