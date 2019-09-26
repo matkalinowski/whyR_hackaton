@@ -1,17 +1,15 @@
 library(tidyverse)
 library(RANN)
 
-mean_lat = 52.22922
-
-add_km_coordinates = function(df, lat_mean = mean(df$lat)){
+add_km_coordinates = function(df, lat_mean = 52.22922, lng_mean = 21.04778){
   m_x = 111132.954 - 559.822 * cos(2 * lat_mean * pi / 180) + 1.175 * cos(4 * lat_mean * pi / 180)
   m_y = 111132.954 * cos(lat_mean * pi / 180)
   
   x = df$lat * m_x
   y = df$lng * m_y
   
-  x = x - mean(x)
-  y = y - mean(y)
+  x = x - lat_mean * m_x
+  y = y - lng_mean * m_y
   
   df$x = x
   df$y = y
@@ -58,8 +56,8 @@ categories = unique(places_with_categories$category)
 
 
 
-places_with_categories = add_km_coordinates(places_with_categories, lat_mean = mean_lat)
-warsaw_100m = add_km_coordinates(warsaw_100m, lat_mean = mean_lat)
+places_with_categories = add_km_coordinates(places_with_categories)
+warsaw_100m = add_km_coordinates(warsaw_100m)
 
 
 # save(places_with_categories, file = "app_data/places_with_categories.RData", compress = TRUE)

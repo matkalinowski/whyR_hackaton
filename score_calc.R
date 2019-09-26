@@ -2,17 +2,15 @@ library(tidyverse)
 
 load("app_data/grid100m_category_distances.RData")
 
-mean_lat = 52.22922
-
-add_km_coordinates = function(df, lat_mean = mean(df$lat)){
+add_km_coordinates = function(df, lat_mean = 52.22922, lng_mean = 21.04778){
   m_x = 111132.954 - 559.822 * cos(2 * lat_mean * pi / 180) + 1.175 * cos(4 * lat_mean * pi / 180)
   m_y = 111132.954 * cos(lat_mean * pi / 180)
   
   x = df$lat * m_x
   y = df$lng * m_y
   
-  x = x - mean(x)
-  y = y - mean(y)
+  x = x - lat_mean * m_x
+  y = y - lng_mean * m_y
   
   df$x = x
   df$y = y
@@ -41,7 +39,11 @@ calc_criteria_score_hyperbolic = function(grid100m_category_distances, criteria,
     mutate(score_norm = (score - min(score) + 1) / (max(score) - min(score) + 1))
 }
 
-calc_points_score_linear
 
+important_points = tibble(
+  lng = c(21.1, 20.01),
+  lat = c(52.1, 52.2)
+)
 
+important_points = add_km_coordinates(important_points)
 

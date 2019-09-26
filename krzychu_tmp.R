@@ -4,7 +4,7 @@ grid100m_category_distances %>%
   summarise(max(distance))
 
 grid100m_category_distances %>%
-  filter(category == 'dentist') %>%
+  filter(category == 'school') %>%
   ggplot() +
   geom_point(aes(x, y, colour = distance))
 
