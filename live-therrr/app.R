@@ -7,6 +7,8 @@ categories <- read.csv("categories.csv", stringsAsFactors = FALSE)
 types <- pull(categories, type)
 names(types) <- pull(categories, label)
 types <- sort(types)
+places <- read.csv("data/places.csv")
+
 
 ui <- dashboardPage(
     dashboardHeader(
@@ -14,7 +16,7 @@ ui <- dashboardPage(
         titleWidth = 350
     ),
     dashboardSidebar(
-        sliderInput("radius", "Point radius", min = 100, max = 1000, value = 100, step = 50),
+        sliderInput("radius", "Point radius", min = 1000, max = 10000, value = 100, step = 50),
         checkboxGroupInput("categories", "Categories", choices = types),
         width = 350
     ),
@@ -31,7 +33,7 @@ server <- function(input, output) {
     
     output$map <- renderLeaflet({
         leaflet() %>%
-            
+            addScaleBar('bottomleft') %>%
             setView(21.0122, 52.2297, 11) %>%
             addProviderTiles(provider = providers$OpenStreetMap,group="OpenStreetMap") %>%
             addProviderTiles(provider = providers$CartoDB,group="CartoDB") %>%
@@ -46,9 +48,25 @@ server <- function(input, output) {
          point <- input$map_click
          req(!is.null(point))
          leafletProxy("map") %>%
-            addScaleBar('bottomleft') %>%
             clearShapes() %>%
-            addCircles(lng=point$lng,lat=point$lat,radius=1000) #, weight = 1, color = "#777777", fillOpacity = 0.7
+            addCircles(lng=point$lng,lat=point$lat,radius=input$radius) #, weight = 1, color = "#777777", fillOpacity = 0.7
+     })
+     
+     observe({
+         point <- input$map_click
+         req(!is.null(point))
+         
+         testPoints <- data.frame(lng=c(21.014,21.1122,21.2122),lat=c(52.2297,52.2297,52.2297))
+         filterdPoints <-  data.frame(testPoints,distTF=geosphere::distHaversine(testPoints,c(point$lng, point$lat))<input$radius) %>%
+             mutate(col=ifelse(distTF,"red","blue"))
+         
+         leafletProxy("map") %>%
+             clearMarkers() %>%
+             addAwesomeMarkers(data=filterdPoints,icon=makeAwesomeIcon(icon='circle', library='fa', markerColor=~col))
+     })
+     
+     observe({
+         print(places %>% head)
      })
 }
 
