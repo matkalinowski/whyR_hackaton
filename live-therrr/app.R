@@ -5,8 +5,11 @@ library(tidyr)
 library(leaflet)
 
 ui <- dashboardPage(
-    dashboardHeader(title = "Live theRRR!"),
-    dashboardSidebar(),
+    dashboardHeader(
+        title = "Live theRRR!",
+        titleWidth = 350
+    ),
+    dashboardSidebar(width = 350),
     dashboardBody(
         tags$head(
             tags$link(rel = "stylesheet", type = "text/css",
