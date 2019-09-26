@@ -89,6 +89,36 @@ server <- function(input, output) {
          fp
      })
      
+     criteria <- reactive({
+         des <- input$desired_categories
+         undes <- input$undesired_categories
+         
+         des_tibble <- tibble()
+         undes_tibble <- tibble()
+         
+         if (!is.null(des)) {
+             des_tibble <- tibble(
+                 category = des,
+                 weight = 1
+             )
+         }
+         
+         if (!is.null(undes)) {
+             undes_tibble <- tibble(
+                 category = undes,
+                 weight = -1
+             )
+         }
+         
+         crit_tibble <- bind_rows(des_tibble, undes_tibble)
+         
+         return(crit_tibble)
+     })
+     
+     observe({
+         criteria()
+     })
+     
      observe({
          leafletProxy("map") %>%
              clearMarkers() %>%
