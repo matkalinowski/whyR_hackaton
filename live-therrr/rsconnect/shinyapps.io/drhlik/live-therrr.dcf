@@ -1,0 +1,12 @@
+name: live-therrr
+title: live-therrr
+username:
+account: drhlik
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1248148
+bundleId: 2447199
+url: https://drhlik.shinyapps.io/live-therrr/
+when: 1569504090.40224
+asMultiple: FALSE
+asStatic: FALSE
